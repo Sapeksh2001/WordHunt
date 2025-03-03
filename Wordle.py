@@ -1,22 +1,45 @@
+import requests
 import random
 import pygame
-import os
 
-def load_dict(file_name):
+# Function to download and filter a large word list
+def fetch_large_word_list():
+    """
+    Fetch a large word list (SCOWL) and filter 5-letter words.
+    :return: List of 5-letter words.
+    """
+    url = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"  # SCOWL word list
     try:
-        file_path = os.path.join(os.getcwd(), file_name)
-        with open(file_path, 'r') as file:
-            words = file.readlines()
-        return [word[:5].upper() for word in words]
-    except FileNotFoundError:
-        print(f"File {file_name} not found.")
+        response = requests.get(url)
+        if response.status_code == 200:
+            words = response.text.splitlines()
+            # Filter 5-letter words
+            five_letter_words = [word.upper() for word in words if len(word) == 5]
+            return five_letter_words
+        else:
+            print(f"Error fetching words: {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
         return []
 
-DICT_GUESSING = load_dict("D:\Projects\Wordle\dictionary english.txt")
-DICT_ANSWERS = load_dict("D:\Projects\Wordle\dictionary wordle.txt")
+# Fetching the word list
+word_list = fetch_large_word_list()
+
+# Use the first million words or fewer
+if word_list:
+    DICT_GUESSING = random.sample(word_list, min(200000, len(word_list)))  # 200,000 random guesses
+    DICT_ANSWERS = random.sample(DICT_GUESSING, 100)  # 100 random answers from the guess list
+else:
+    print("Failed to fetch the word list.")
+    exit()
 
 pygame.init()
 ANSWER = random.choice(DICT_ANSWERS)
+
+# The rest of your Wordle game remains unchanged.
+
+
 
 width = 600
 height = 700
